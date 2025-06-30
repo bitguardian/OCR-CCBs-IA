@@ -1,0 +1,6 @@
+openai
+pdfplumber
+tiktoken
+gspread
+python-dotenv
+oauth2client
