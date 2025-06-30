@@ -11,26 +11,42 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def gerar_prompt(texto, nome_arquivo):
     return f"""
-Você é um assistente de extração de dados de contratos CCB. Extraia as seguintes informações em formato JSON:
+Você é um especialista em contratos bancários. Leia o texto a seguir e extraia os dados **exatamente** como solicitado abaixo, mesmo que as expressões no texto sejam diferentes.
 
-- "numero_proposta": número da proposta ou do contrato — geralmente aparece como "Proposta nº", "Nº do Instrumento", "Número do Contrato", "Número da CCB", ou similar
+🎯 Retorne **apenas um JSON** com os seguintes campos:
+
+- "numero_proposta": número do contrato ou da proposta. Ele sempre aparece depois de expressões como "Proposta nº", "Nº do Contrato", "Contrato nº", "Nº do Instrumento", "CCB nº" ou similares. Extraia apenas o número — **não inclua palavras como "Proposta", "Contrato" ou "Nº" no valor final**.
 - "nome_cliente": nome completo da pessoa contratante
-- "valor_total": valor total do contrato
-- "valor_liberado": valor líquido liberado ao cliente
-- "valor_outras_liquidacoes": valor de outras liquidações (se houver)
-- "tarifa_cadastro": valor da tarifa de cadastro
-- "seguro": valor do seguro (se houver)
-- "valor_iof": valor do IOF
-- "taxa_juros": taxa de juros nominal (%)
-- "primeiro_vencimento": data do primeiro vencimento (no formato DD/MM/AAAA)
-- "quantidade_parcelas": número total de parcelas
-- "valor_parcela": valor de cada parcela
-- "cet": Custo Efetivo Total (%)
-- "data_assinatura": data de assinatura do contrato (formato DD/MM/AAAA)
-- "arquivo": nome do arquivo atual (use "{nome_arquivo}")
+- "cpf_cliente": CPF do cliente - exemplo: 123.456.789-00 (sem formatação, apenas números)
+- "valor_total": valor total financiado (inclui juros e encargos) — exemplo: R$ 9.000,00
+- "valor_liberado": valor líquido recebido pelo cliente — exemplo: R$ 8.500,00
+- "valor_outras_liquidacoes": outras liquidações, se houver
+- "tarifa_cadastro": valor da tarifa de cadastro, se houver
+- "seguro": valor do seguro, se houver
+- "valor_iof": valor do IOF, se houver
+- "taxa_juros_mensal": taxa de juros nominal ao mês — ex: 2,5% ao mês
+- "taxa_juros_anual": taxa de juros nominal ao ano — ex: 36% ao ano
+- "primeiro_vencimento": data da primeira parcela — ex: 20/03/2023
+- "quantidade_parcelas": número total de parcelas — ex: 96
+- "valor_parcela": valor de cada parcela — ex: R$ 125,90
+- "cet": custo efetivo total (CET), se disponível, preferencialmente anual
+- "data_assinatura": data em que o contrato foi assinado. Pode aparecer de várias formas, como:
+- "Assinado eletronicamente por..."
+- "Assinatura em"
+- "Assinado em"
+- "Emitido em"
+- "Firmado em"
 
-Retorne apenas um JSON com esses campos, sem texto adicional. Segue o texto:
+Mesmo que a data esteja escrita por extenso (ex: "5 de outubro de 2022"), converta sempre para o formato DD/MM/AAAA (ex: "05/10/2022").
+- "arquivo": nome do arquivo atual (use exatamente: {nome_arquivo})
 
+⚠️ Observações:
+- Sempre que houver taxa mensal **e** anual, extraia as duas (ex: 2,6% ao mês e 36,07% ao ano).
+- Se os valores forem escritos de formas diferentes (ex: "valor liberado ao cliente", "seguro prestamista", "tarifa de abertura"), adapte e extraia corretamente.
+- Retorne todos os valores **no formato R$ XX.XXX,XX**, mesmo que o original esteja diferente.
+- Se algum valor não estiver presente, retorne-o como string vazia ("").
+
+📄 Texto do contrato:
 \"\"\"{texto}\"\"\"
 """
 
@@ -56,6 +72,33 @@ def enviar_com_retry(prompt, max_tentativas=5):
             raise e
     raise Exception("❌ Erro: número máximo de tentativas excedido.")
 
+def corrigir_dados(dados):
+    campos_valor = [
+        "valor_total", "valor_liberado", "valor_outras_liquidacoes",
+        "tarifa_cadastro", "seguro", "valor_iof", "valor_parcela"
+    ]
+
+    for campo in campos_valor:
+        valor = dados.get(campo, "")
+        if isinstance(valor, str):
+            valor = valor.strip()
+            if valor and not valor.startswith("R$"):
+                valor = "R$ " + valor
+            dados[campo] = valor
+        else:
+            dados[campo] = ""
+
+    # Normalização do CPF (remove pontos e traço)
+    if "cpf_cliente" in dados and isinstance(dados["cpf_cliente"], str):
+        dados["cpf_cliente"] = dados["cpf_cliente"].replace(".", "").replace("-", "").strip()
+
+    # Padroniza taxas (sem espaços desnecessários)
+    for campo in ["taxa_juros_mensal", "taxa_juros_anual", "cet"]:
+        if campo in dados and isinstance(dados[campo], str):
+            dados[campo] = dados[campo].replace(" %", "%").strip()
+
+    return dados
+
 def fallback_via_ia_batch(lista_entradas):
     resultados = []
 
@@ -74,6 +117,7 @@ def fallback_via_ia_batch(lista_entradas):
                 continue
 
             dados_extraidos["arquivo"] = item["arquivo"]
+            dados_extraidos = corrigir_dados(dados_extraidos)
             resultados.append(dados_extraidos)
 
             time.sleep(1.2)  # pausa leve entre chamadas para evitar pico

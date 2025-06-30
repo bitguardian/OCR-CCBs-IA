@@ -9,11 +9,11 @@ from oauth2client.service_account import ServiceAccountCredentials
 from fallback_via_ia import fallback_via_ia_batch
 
 # === CONFIGURAÇÕES ===
-PASTA_PDFS = r"Z:" # <-- ALTERE PARA O CAMINHO DA SUA PASTA
+PASTA_PDFS = r"C:\Users\bruno.moura\Desktop\CCBs Patrick" # <-- ALTERE PARA O CAMINHO DA SUA PASTA
 EXTENSOES_VALIDAS = [".pdf"]
 ARQUIVO_CREDENCIAIS = "credentials.json"
 NOME_PLANILHA = "OCR CCB"
-NOME_ABA = "Página1"
+NOME_ABA = "Teste Melhoria IA"
 LIMITE_TOKENS = 90000
 SALVAR_DEBUG = False
 
@@ -68,22 +68,28 @@ def montar_linha_planilha(dado):
     return [
         dado.get("numero_proposta", ""),
         dado.get("nome_cliente", ""),
+        dado.get("cpf_cliente", ""),
         dado.get("valor_total", ""),
         dado.get("valor_liberado", ""),
         dado.get("valor_outras_liquidacoes", ""),
         dado.get("tarifa_cadastro", ""),
         dado.get("seguro", ""),
         dado.get("valor_iof", ""),
-        dado.get("taxa_juros", ""),
+        dado.get("taxa_juros_mensal", ""),
+        dado.get("taxa_juros_anual", ""),
         dado.get("primeiro_vencimento", ""),
         dado.get("quantidade_parcelas", ""),
         dado.get("valor_parcela", ""),
         dado.get("cet", ""),
         dado.get("data_assinatura", ""),
         dado.get("arquivo", ""),
-        "ccb",
-        "fallback_ia"
+        dado.get("tipo_comprovante", "CCB"),
+        dado.get("metodo_extracao", "fallback_ia")
     ]
+
+def eh_modelo_nao_ccb(texto):
+    # Verifica se é o modelo conhecido que começa com "DADOS PESSOAIS"
+    return texto.strip().upper().startswith("DADOS PESSOAIS")
 
 def processar_pasta(pasta):
     sheet = conectar_planilha()
@@ -108,6 +114,30 @@ def processar_pasta(pasta):
         print(f"\n📄 Processando: {nome}")
         texto_bruto = extrair_paginas_relevantes(caminho)
         texto_limpo = limpar_texto(texto_bruto)
+        if eh_modelo_nao_ccb(texto_limpo):
+            print(f"⚠️ Documento '{nome}' identificado como NÃO CCB. Registrando apenas nome do arquivo.")
+            resultados_finais.append({
+                "numero_proposta": "",
+                "nome_cliente": "",
+                "cpf_cliente": "",
+                "valor_total": "",
+                "valor_liberado": "",
+                "valor_outras_liquidacoes": "",
+                "tarifa_cadastro": "",
+                "seguro": "",
+                "valor_iof": "",
+                "taxa_juros_mensal": "",
+                "taxa_juros_anual": "",
+                "primeiro_vencimento": "",
+                "quantidade_parcelas": "",
+                "valor_parcela": "",
+                "cet": "",
+                "data_assinatura": "",
+                "arquivo": nome,
+                "tipo_comprovante": "NÃO É UMA CCB",
+                "metodo_extracao": "modelo_nao_ccb"
+            })
+            continue
         tokens = contar_tokens(texto_limpo)
 
         print(f"🧠 Tokens estimados: {tokens}")
