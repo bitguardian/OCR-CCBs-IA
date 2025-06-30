@@ -25,7 +25,7 @@ def conectar_planilha():
     cliente = gspread.authorize(creds)
     return cliente.open(NOME_PLANILHA).worksheet(NOME_ABA)
 
-def contar_tokens(texto, modelo="gpt-4o"):
+def contar_tokens(texto, modelo="gpt-3.5-turbo"):
     try:
         enc = tiktoken.encoding_for_model(modelo)
     except:
