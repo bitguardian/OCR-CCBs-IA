@@ -9,7 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from fallback_via_ia import fallback_via_ia_batch
 
 # === CONFIGURAÇÕES ===
-PASTA_PDFS = r"C:\Users\bruno.moura\Desktop\CCBs Patrick" # <-- ALTERE PARA O CAMINHO DA SUA PASTA
+PASTA_PDFS = r"C:" # <-- ALTERE PARA O CAMINHO DA SUA PASTA
 EXTENSOES_VALIDAS = [".pdf"]
 ARQUIVO_CREDENCIAIS = "credentials.json"
 NOME_PLANILHA = "OCR CCB"
