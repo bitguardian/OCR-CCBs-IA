@@ -38,7 +38,7 @@ OCR-CCBs/
 
 ```bash
 git clone https://github.com/bitguardian/OCR-CCBs-IA.git
-cd OCR-CCBs
+cd OCR-CCBs-IA
 ```
 
 2. Instale as dependências:
