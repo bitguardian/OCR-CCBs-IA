@@ -2,7 +2,6 @@ import os
 import pdfplumber
 import tiktoken
 import gspread
-import csv
 from datetime import datetime
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
@@ -13,7 +12,7 @@ PASTA_PDFS = r"C:" # <-- ALTERE PARA O CAMINHO DA SUA PASTA
 EXTENSOES_VALIDAS = [".pdf"]
 ARQUIVO_CREDENCIAIS = "credentials.json"
 NOME_PLANILHA = "OCR CCB"
-NOME_ABA = "Teste Melhoria IA"
+NOME_ABA = "Novo teste"
 LIMITE_TOKENS = 90000
 SALVAR_DEBUG = False
 

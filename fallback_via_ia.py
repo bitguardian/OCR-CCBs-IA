@@ -29,15 +29,13 @@ Você é um especialista em contratos bancários. Leia o texto a seguir e extrai
 - "primeiro_vencimento": data da primeira parcela — ex: 20/03/2023
 - "quantidade_parcelas": número total de parcelas — ex: 96
 - "valor_parcela": valor de cada parcela — ex: R$ 125,90
-- "cet": custo efetivo total (CET), se disponível, preferencialmente anual
+- "cet": custo efetivo total (CET) extrair taxa mensal e anual, se houver — ex: 2,6% ao mês e 36,07% ao ano
 - "data_assinatura": data em que o contrato foi assinado. Pode aparecer de várias formas, como:
 - "Assinado eletronicamente por..."
 - "Assinatura em"
 - "Assinado em"
-- "Emitido em"
-- "Firmado em"
 
-Mesmo que a data esteja escrita por extenso (ex: "5 de outubro de 2022"), converta sempre para o formato DD/MM/AAAA (ex: "05/10/2022").
+Mesmo que a data esteja escrita por extenso (ex: "5 de outubro de 2022"), converta sempre para o formato DD/MM/AAAA (ex: "05/10/2022"), extraia exatamente a data em que o documento foi assinado, não a data de emissão, ou outra data qualquer.
 - "arquivo": nome do arquivo atual (use exatamente: {nome_arquivo})
 
 ⚠️ Observações:
