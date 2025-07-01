@@ -37,7 +37,7 @@ OCR-CCBs/
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/bitguardian/OCR-CCBs.git
+git clone https://github.com/bitguardian/OCR-CCBs-IA.git
 cd OCR-CCBs
 ```
 
