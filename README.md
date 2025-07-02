@@ -37,8 +37,8 @@ OCR-CCBs/
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/bitguardian/OCR-CCBs-IA.git
-cd OCR-CCBs-IA
+git clone https://github.com/bitguardian/CCBot-IA.git
+cd CCBot-IA
 ```
 
 2. Instale as dependências:
@@ -84,7 +84,8 @@ A IA irá extrair os seguintes campos de cada contrato:
 - tarifa de cadastro
 - seguro
 - valor do IOF
-- taxa de juros
+- taxa de juros mensal
+- taxa de juros anual
 - primeiro vencimento
 - quantidade de parcelas
 - valor de cada parcela
